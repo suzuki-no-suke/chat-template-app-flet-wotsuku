@@ -25,3 +25,4 @@ python main.py
 ## Under construction
 
   * Sorry windows only
+    * Porting are welcome !
