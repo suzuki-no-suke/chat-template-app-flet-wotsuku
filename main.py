@@ -1,6 +1,14 @@
 import flet as ft
-from datetime import datetime
 from dotenv import load_dotenv
+import ulid
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+
+import os
+import pickle
+from datetime import datetime
 
 import src.initialize
 
@@ -73,11 +81,88 @@ class ChatHistory(ft.UserControl):
         ])
 
 # -------------------------------------------------------------
-# ORM classes - SQL Alchemy
+# ORM extention
 
+def get_default_db():
+    engine = create_engine(os.getenv("DB_CONNECTION"), echo=True)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    return session
+
+def gen_id():
+    return str(ulid.new())
+
+class DBChatHistory:
+    def load_single_chat(self, history_id):
+        session = get_default_db()
+        chat_history = session.query(ChatHistory).filter(ChatHistory.history_id == history_id).first()
+        if chat_history:
+            single_chat_history = KeepSingleChatHistory()
+            single_chat_history.history_id = chat_history.history_id
+            single_chat_history.title = chat_history.chat_titleline
+            single_chat_history.chat = pickle.loads(chat_history.chat_log)
+            single_chat_history.additional = pickle.loads(chat_history.initial_values)
+            return single_chat_history
+        else:
+            return None
+
+    def save(self, chat_history):
+        session = get_default_db()
+        history_id = None
+        if chat_history.id is None:
+            history_id = gen_id()
+
+            # Insert new chat history
+            new_chat_history = ChatHistory(
+                history_id=history_id,
+                chat_log=pickle.dumps(chat_history.chat),
+                initial_values=pickle.dumps(chat_history.additional),
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+            session.add(new_chat_history)
+        else:
+            history_id = chat_history.id
+
+            # Update existing chat history
+            update_chat_history = session.query(ChatHistory).filter(ChatHistory.history_id == chat_history.id).first()
+            if update_chat_history:
+                update_chat_history.chat_log = pickle.dumps(chat_history.chat)
+                update_chat_history.initial_values = pickle.dumps(chat_history.additional)
+                update_chat_history.updated_at = datetime.now()
+        session.commit()
+
+        return history_id
+
+    def load_history_list(self):
+        session = get_default_db()
+        chat_histories = session.query(ChatHistory.history_id, ChatHistory.chat_titleline).all()
+        return [(chat.history_id, chat.chat_titleline) for chat in chat_histories]
 
 # -------------------------------------------------------------
 # data control classes
+class KeepSingleChatHistory:
+    def __init__(self, chat=[], additional={}):
+        self.id = None
+        self.title = ""
+        self.chat = []
+        self.additional = {}
+
+    def add_chat(self, role, msg, time):
+        self.chat.append(
+            {
+                "role" : role,
+                "message" : msg,
+                "time": time
+            }
+        )
+        self.title = time.strftime("%Y-%m-%d %H:%M")
+
+    def save(self, dbobj):
+        dbobj.save(self)
+
+
 
 
 
@@ -205,7 +290,8 @@ def main(page: ft.Page):
     )
     cont_edit_config = ft.Container(
         ft.Column([
-            ft.Text("configuration editor under construction")
+            ft.Text("configuration editor under construction"),
+            ft.ElevatedButton("Migrate data"),
         ])
     )
 

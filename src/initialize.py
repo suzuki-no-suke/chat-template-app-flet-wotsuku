@@ -1,23 +1,31 @@
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, LargeBinary, DateTime, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 
+import os
+
+Base = declarative_base()
+
+class ChatHistory(Base):
+    __tablename__ = 'chat_history'
+    history_id = Column(String, primary_key=True)
+    chat_titleline = Column(String)
+    chat_log = Column(LargeBinary)
+    initial_values = Column(LargeBinary)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
+
 
 def init_app():
     # if env does not exists, create and set default
-    Base = declarative_base()
 
-    class ChatTable(Base):
-        __tablename__ = 'chat_table'
-        id = Column(Integer, primary_key=True)
-        text = Column(String)
-
-    engine = create_engine('sqlite:///chat.db', echo=True)
+    # if db does not exists, create database
+    engine = create_engine(os.getenv("DB_CONNECTION"), echo=True)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    # if db does not exists, create database
-
-    # migrate database
+    inspector = inspect(engine)
+    if not inspector.has_table(ChatHistory.__tablename__):
+        Base.metadata.create_all(engine)

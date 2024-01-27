@@ -2,3 +2,4 @@ flet
 sqlalchemy
 jinja2
 python-dotenv
+python-ulid
