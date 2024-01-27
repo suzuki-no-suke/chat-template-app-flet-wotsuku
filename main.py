@@ -1,5 +1,8 @@
 import flet as ft
 from datetime import datetime
+from dotenv import load_dotenv
+
+import src.initialize
 
 # -------------------------------------------------------------
 
@@ -68,6 +71,15 @@ class ChatHistory(ft.UserControl):
             ChatMessage("assistant", "hello", True, datetime.now()),
             ChatMessage("user", "world", True, datetime.now())
         ])
+
+# -------------------------------------------------------------
+# ORM classes - SQL Alchemy
+
+
+# -------------------------------------------------------------
+# data control classes
+
+
 
 # -------------------------------------------------------------
 # core code
@@ -230,4 +242,6 @@ def main(page: ft.Page):
 
 
 if __name__=='__main__':
+    load_dotenv()
+    src.initialize.init_app()
     ft.app(target=main)
