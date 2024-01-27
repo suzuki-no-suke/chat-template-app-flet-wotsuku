@@ -182,6 +182,9 @@ def main(page: ft.Page):
     def send_chat():
         pass
 
+    def send_chat_as_bot():
+        pass
+
     def generate_template():
         pass
 
@@ -201,6 +204,25 @@ def main(page: ft.Page):
 
     # ---------------------------------------------------------
     # declare GUI event function
+    def btn_ev_send_chat(e):
+        send_chat()
+        save_chat()
+        page.update()
+
+    def btn_ev_send_as_bot(e):
+        send_chat_as_bot()
+        save_chat()
+        page.update()
+
+    def drp_ev_select_chat_history(e):
+        save_chat()
+        load_chat_history()
+        page.update()
+
+    # ---------------------------------------------------------
+    def initialize_application():
+        load_chat_history()
+        page.update()
 
     # ---------------------------------------------------------
     # declare GUI parts
@@ -220,11 +242,8 @@ def main(page: ft.Page):
     )
     drp_chat_history_selection = ft.Dropdown(
         label="Chat history",
-        options=[
-            ft.dropdown.Option("history 1"),
-            ft.dropdown.Option("history 2"),
-            ft.dropdown.Option("history 3"),
-        ]
+        options=[],
+        on_change=drp_ev_select_chat_history
     )
     drp_template_file_viewer_selection = ft.Dropdown(
         label="Select template",
@@ -265,9 +284,9 @@ def main(page: ft.Page):
             drp_chat_history_selection,
             ChatHistory(),
             ft.Row([
-                ft.ElevatedButton("Bot"),
+                ft.ElevatedButton("Bot", on_click=btn_ev_send_as_bot),
                 ft.TextField(label="Chat message"),
-                ft.ElevatedButton("Send")
+                ft.ElevatedButton("Send", on_click=btn_ev_send_chat)
             ])
         ])
     )
@@ -358,6 +377,8 @@ def main(page: ft.Page):
     main_tabpages.tabs.append(tab_configuration)
     
     page.add(main_tabpages)
+
+    initialize_application()
 
 
 if __name__=='__main__':
