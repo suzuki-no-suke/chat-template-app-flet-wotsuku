@@ -21,6 +21,12 @@ python main.py
 ```
 
 
+## run test
+
+Use `unittest` module
+
+  * `python -m unittest discover`
+
 
 ## Under construction
 
