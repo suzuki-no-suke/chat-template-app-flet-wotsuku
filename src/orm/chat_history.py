@@ -21,14 +21,14 @@ class RecodeChatHistory(orm_base.Base):
             fullpath : "...",
             content : "...",
         },
-        embedded : {
-            {
+        embedded : [
+            "<name>" : {
                 name : "...",
                 type : "input", # input, file for now, expand to image, audio, movie,,,
                 fullpath : "...",
                 content : "...",
             }
-        },
+        ],
         version : "chat-data-v0.0.1",
         system : "template-v0.0.1", # maybe not version update
     }
