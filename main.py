@@ -172,6 +172,34 @@ def main(page: ft.Page):
     page.title = "Chat Template with Flet (Wotsuku)"
 
     # ---------------------------------------------------------
+    # Glue functionarity
+    def load_chat_history():
+        pass
+
+    def save_chat():
+        pass
+
+    def send_chat():
+        pass
+
+    def generate_template():
+        pass
+
+    # ---------------------------------------------------------
+    # in tab page functionarity
+    # tab - template input
+    def set_template_filelist():
+        pass
+
+    def select_template_file():
+        pass
+
+    # tab - chat message
+    def set_chat_history_list():
+        pass
+
+
+    # ---------------------------------------------------------
     # declare GUI event function
 
     # ---------------------------------------------------------
