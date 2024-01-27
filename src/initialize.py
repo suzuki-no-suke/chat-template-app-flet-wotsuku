@@ -7,7 +7,7 @@ import os
 
 Base = declarative_base()
 
-class ChatHistory(Base):
+class RecodeChatHistory(Base):
     __tablename__ = 'chat_history'
     history_id = Column(String, primary_key=True)
     chat_titleline = Column(String)
@@ -27,5 +27,5 @@ def init_app():
     session = Session()
 
     inspector = inspect(engine)
-    if not inspector.has_table(ChatHistory.__tablename__):
+    if not inspector.has_table(RecodeChatHistory.__tablename__):
         Base.metadata.create_all(engine)
