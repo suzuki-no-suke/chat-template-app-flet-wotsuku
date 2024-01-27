@@ -76,7 +76,7 @@ class ChatHistory(ft.UserControl):
     def build(self):
         return ft.Column([
             ChatMessage("system", "test", False, datetime.now()),
-            ChatMessage("assistant", "hello", True, datetime.now()),
+            ChatMessage("assistant", "hello", False, datetime.now()),
             ChatMessage("user", "world", True, datetime.now())
         ])
 
@@ -233,9 +233,14 @@ def main(page: ft.Page):
         ])
     )
     cont_tab_chat_and_history = ft.Container(
-        ft.Row([
+        ft.Column([
             drp_chat_history_selection,
-            ChatHistory()
+            ChatHistory(),
+            ft.Row([
+                ft.ElevatedButton("Bot"),
+                ft.TextField(label="Chat message"),
+                ft.ElevatedButton("Send")
+            ])
         ])
     )
     cont_template_edit = ft.Container(
