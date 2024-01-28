@@ -9,255 +9,37 @@ import os
 import pickle
 from datetime import datetime
 
-import src.initialize
+import src.gui.valueinput_parts as gui_value
+import src.gui.chat_parts as gui_chat
 
 # -------------------------------------------------------------
-
-class ValueInput(ft.UserControl):
-    def build(self):
-        return ft.Column([
-            ft.TextField(
-                label="value",
-                max_lines=5
-            ),
-            ft.Row([
-                ft.Checkbox(
-                    label="Use file"
-                ),
-                ft.Dropdown(
-                    label="file select",
-                    options=[
-                        ft.dropdown.Option("file 1"),
-                        ft.dropdown.Option("file 2"),
-                        ft.dropdown.Option("file 3"),
-                    ]
-                ),
-            ]),
-        ])
-
-class ChatMessage(ft.UserControl):
-    def __init__(self, role, message, is_right=True, msg_time=datetime.now()):
-        self.role = role
-        self.message = message
-        self.is_right = is_right
-        self.msg_time = msg_time
-
-        super().__init__()
-
-    def build(self):
-        time_text = self.msg_time.strftime("%H:%M")
-        role_text = self.role
-        if self.is_right:
-            return ft.Row([
-                ft.TextField(
-                    label=f"{role_text} - {time_text}",
-                    multiline=True),
-                ft.Icon(name=ft.icons.FAVORITE),
-            ])
-        else:
-            return ft.Row([
-                ft.Icon(name=ft.icons.FAVORITE),
-                ft.TextField(
-                    label=f"{role_text} - {time_text}",
-                    multiline=True),
-            ])
-
-
-class UIChatHistory(ft.UserControl):
-    """
-    チャット履歴の表示と保存
-    """
-    def __init__(self):
-        self.chatlog = []
-        self.history_id = None
-        self.chatdisp = ft.Column([
-            ChatMessage("system", "test", False, datetime.now()),
-            ChatMessage("assistant", "hello", False, datetime.now()),
-            ChatMessage("user", "world", True, datetime.now())
-        ])
-        super().__init__()
-
-    def build(self):
-        return self.chatdisp
-
-    def clear(self):
-        self.chatlog.clear()
-        self.chatdisp.control.clear()
-
-    def add_chat(self, role, message):
-        addtime = datetime.now()
-        timestr = addtime.strftime("%Y-%m-%d %H:%M")
-
-        # add chatlog
-        self.chatlog.append({
-            "role" : role,
-            "message" : message,
-            "time" : timestr
-        })
-
-        # add chatdisp log
-        is_right = True if role == "user" else False
-        self.chatdisp.controls.append(
-            ChatMessage(
-                role,
-                message,
-                is_right,
-                addtime
-            )
-        )
-
-    def get_chat_history(self):
-        return self.chatlog
-
-    def set_chat(self, chat_log):
-        self.chatlog = chat_log
-
-        # set chatdisp
-        self.chatdisp.control.clear()
-
-# -------------------------------------------------------------
-# ORM extention
-
-def get_default_db():
-    engine = create_engine(os.getenv("DB_CONNECTION"), echo=True)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
-    return session
-
-def gen_id():
-    return str(ULID())
-
-class DBChatHistory:
-    def load_single_chat(self, history_id):
-        session = get_default_db()
-        chat_history = session.query(ChatHistory).filter(ChatHistory.history_id == history_id).first()
-        if chat_history:
-            single_chat_history = KeepSingleChatHistory()
-            single_chat_history.history_id = chat_history.history_id
-            single_chat_history.title = chat_history.chat_titleline
-            single_chat_history.chat = pickle.loads(chat_history.chat_log)
-            single_chat_history.additional = pickle.loads(chat_history.initial_values)
-            return single_chat_history
-        else:
-            return None
-
-    def save(self, chat_history):
-        session = get_default_db()
-        history_id = None
-        if chat_history.history_id is None:
-            history_id = gen_id()
-
-            # Insert new chat history
-            new_chat_history = src.initialize.RecodeChatHistory(
-                history_id=history_id,
-                chat_log=pickle.dumps(chat_history.chat_log),
-                initial_values=pickle.dumps(chat_history.initial_values),
-                created_at=datetime.now(),
-                updated_at=datetime.now()
-            )
-            session.add(new_chat_history)
-        else:
-            history_id = chat_history.id
-
-            # Update existing chat history
-            update_chat_history = session.query(ChatHistory).filter(ChatHistory.history_id == chat_history.id).first()
-            if update_chat_history:
-                update_chat_history.chat_log = pickle.dumps(chat_history.chat)
-                update_chat_history.initial_values = pickle.dumps(chat_history.additional)
-                update_chat_history.updated_at = datetime.now()
-        session.commit()
-
-        return history_id
-
-    def load_history_list(self):
-        session = get_default_db()
-        chat_histories = session.query(src.initialize.RecodeChatHistory.history_id, src.initialize.RecodeChatHistory.chat_titleline).all()
-        return [(chat.history_id, chat.chat_titleline) for chat in chat_histories]
-
-
-# -------------------------------------------------------------
-# core code
 def main(page: ft.Page):
     page.title = "Chat Template with Flet (Wotsuku)"
 
     # ---------------------------------------------------------
-    # closure variables
-    db_chat_history = DBChatHistory()
-
-    # ---------------------------------------------------------
-    # Glue functionarity
-    def load_chat_history():
-        chat_hist = db_chat_history.load_history_list()
-        # reset dropdown items
-        drp_chat_history_selection.options.clear()
-        for ch in chat_hist:
-            opt = ft.dropdown.Option(key=ch[0], text=ch[1])
-        page.update()
-
-    def save_chat():
-        chat_list = ui_chat_history.get_chat_history()
-
-        chat_obj = src.initialize.RecodeChatHistory()
-        chat_obj.history_id = ui_chat_history.history_id
-        chat_obj.chat_titleline = f"saved : {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        chat_obj.chat_log = chat_list
-        chat_obj.initial_values = {"version" : "chat-app-v0.0.1"}
-        history_id = db_chat_history.save(chat_obj)
-        ui_chat_history.history_id = history_id
-
-    def send_chat():
+    # event handler
+    def on_click_chat_send(e):
         msg = ui_chat_message.value
         if not msg:
             return
-        role = "user"
-        ui_chat_history.add_chat(role, msg)
+        
+        ui_chat_history.add_chat("user", msg)
 
-    def send_chat_as_bot():
+        ui_chat_message.value = ""
+
+        page.update()
+
+    def on_click_chat_send_as_bot(e):
         msg = ui_chat_message.value
         if not msg:
             return
-        role = "assistant"
-        ui_chat_history.add_chat(role, msg)
+        
+        ui_chat_history.add_chat("assistant", msg)
 
-    def generate_template():
-        pass
+        ui_chat_message.value = ""
 
-    # ---------------------------------------------------------
-    # in tab page functionarity
-    # tab - template input
-    def set_template_filelist():
-        pass
-
-    def select_template_file():
-        pass
-
-    # tab - chat message
-    def set_chat_history_list():
-        pass
-
-
-    # ---------------------------------------------------------
-    # declare GUI event function
-    def btn_ev_send_chat(e):
-        send_chat()
-        save_chat()
         page.update()
 
-    def btn_ev_send_as_bot(e):
-        send_chat_as_bot()
-        save_chat()
-        page.update()
-
-    def drp_ev_select_chat_history(e):
-        save_chat()
-        load_chat_history()
-        page.update()
-
-    # ---------------------------------------------------------
-    def initialize_application():
-        load_chat_history()
-        page.update()
 
     # ---------------------------------------------------------
     # declare GUI parts
@@ -278,10 +60,9 @@ def main(page: ft.Page):
     drp_chat_history_selection = ft.Dropdown(
         label="Chat history",
         options=[],
-        on_change=drp_ev_select_chat_history
     )
     ui_chat_message = ft.TextField(label="Chat message")
-    ui_chat_history = UIChatHistory()
+    ui_chat_history = gui_chat.ChatHistoryView()
     drp_template_file_viewer_selection = ft.Dropdown(
         label="Select template",
         options=[
@@ -307,8 +88,6 @@ def main(page: ft.Page):
             ft.Container(
                 content=ft.Column([
                     ft.Text("input values"),
-                    ValueInput(),
-                    ValueInput(),
                     ft.Row([
                         ft.ElevatedButton("Generate")
                     ])
@@ -321,9 +100,9 @@ def main(page: ft.Page):
             drp_chat_history_selection,
             ui_chat_history,
             ft.Row([
-                ft.ElevatedButton("Bot", on_click=btn_ev_send_as_bot),
+                ft.ElevatedButton("Bot", on_click=on_click_chat_send_as_bot),
                 ui_chat_message,
-                ft.ElevatedButton("Send", on_click=btn_ev_send_chat)
+                ft.ElevatedButton("Send", on_click=on_click_chat_send)
             ])
         ])
     )
@@ -415,10 +194,8 @@ def main(page: ft.Page):
     
     page.add(main_tabpages)
 
-    initialize_application()
 
 
 if __name__=='__main__':
     load_dotenv()
-    src.initialize.init_app()
     ft.app(target=main)
