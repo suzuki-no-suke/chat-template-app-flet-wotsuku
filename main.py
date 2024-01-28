@@ -1,13 +1,11 @@
 import flet as ft
 from dotenv import load_dotenv
 from ulid import ULID
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 import os
 import pickle
 from datetime import datetime
+import re
+import jinja2
 
 import src.orm.base as orm_base
 import src.orm.chat_history as orm_chat
@@ -86,6 +84,7 @@ def main(page: ft.Page):
 
     def initialize_app():
         load_chat_history()
+        load_template_filelist()
     
     def clear_chat():
         # TODO : clear method
@@ -98,6 +97,55 @@ def main(page: ft.Page):
 
         page.update()
 
+    def load_template_filelist():
+        # TODO : out to not .env config
+        dir = os.path.abspath(os.getenv("DIR_TEMPLATES"))
+        
+        # load all .j2 file in dir
+        file_list = [f for f in os.listdir(dir) if f.endswith('.j2')]
+        print(file_list)
+
+        # set file list to dropdown
+        drp_template_file_selection.options.clear()
+        # TODO : usual appending to list can <internal list directive(?)>
+        for filename in file_list:
+            fullpath = os.path.join(dir, filename)
+
+            drp_template_file_selection.options.append(
+                ft.dropdown.Option(
+                    key=fullpath,
+                    text=filename
+                )
+            )
+
+        page.update()
+
+    def load_template_contents(filepath):
+        # load whole contents
+        with open(filepath, 'rt', encoding='utf-8') as file:
+            file_contents = file.read()
+        txt_template_contents.value = file_contents
+        
+        # analysis all jinja2 variable
+        variable_names = re.findall(r'{{(.*?)}}', file_contents)
+        variable_names = [name.strip() for name in variable_names]
+
+        # set variable input view
+        ui_valueinput_variables_view.controls.clear()
+        for var in variable_names:
+            var_input = gui_value.ValueInputView(var)
+            ui_valueinput_variables_view.controls.append(var_input)
+
+        page.update()
+
+    def render_template():
+        template_text = txt_template_contents.value
+        mappings = {}
+        for iv in ui_valueinput_variables_view.controls:
+            mappings[iv.name] = iv.get_value()
+        rendered_template = jinja2.Template(template_text).render(mappings)
+
+        ui_chat_message.value = rendered_template
 
     # ---------------------------------------------------------
     # event handler
@@ -155,15 +203,22 @@ def main(page: ft.Page):
         clear_chat()
         page.update()
 
+    def on_change_drp_template_file_select(e):
+        value = drp_template_file_selection.value
+        load_template_contents(value)
+        page.update()
+
+    def on_click_generate(e):
+        render_template()
+        main_tabpages.selected_index = 1
+        page.update()
+
     # ---------------------------------------------------------
     # declare GUI parts
     drp_template_file_selection = ft.Dropdown(
         label="Template file selection",
-        options=[
-            ft.dropdown.Option("file 1"),
-            ft.dropdown.Option("file 2"),
-            ft.dropdown.Option("file 3"),
-        ]
+        options=[],
+        on_change=on_change_drp_template_file_select
     )
     txt_template_contents = ft.TextField(
         label="Chat Template",
@@ -186,7 +241,7 @@ def main(page: ft.Page):
             ft.dropdown.Option("file 3"),
         ]
     )
-
+    ui_valueinput_variables_view = ft.Column([])
 
     # ---------------------------------------------------------
     # building tag contents
@@ -203,9 +258,8 @@ def main(page: ft.Page):
             ft.Container(
                 content=ft.Column([
                     ft.Text("input values"),
-                    ft.Row([
-                        ft.ElevatedButton("Generate")
-                    ])
+                    ft.ElevatedButton("Generate", on_click=on_click_generate),
+                    ui_valueinput_variables_view,
                 ])
             )
         ])

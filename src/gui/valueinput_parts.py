@@ -2,17 +2,18 @@ import flet as ft
 
 
 class ValueInputView(ft.UserControl):
-    def __init__(self) -> None:
+    def __init__(self, name) -> None:
         self.gui_resource_list = ft.Dropdown(label="select resource")
+        self.name = name
+        self.input_value = ft.TextField(
+                label=self.name,
+                max_lines=5)
 
         super().__init__()
 
     def build(self): 
         return ft.Column([
-            ft.TextField(
-                label="value",
-                max_lines=5
-            ),
+            self.input_value,
             ft.Row([
                 ft.Checkbox(
                     label="Use resource"
@@ -21,3 +22,8 @@ class ValueInputView(ft.UserControl):
             ]),
         ])
 
+    def set_file_list(self, file_fullpath_list):
+        pass
+
+    def get_value(self):
+        return self.input_value.value
