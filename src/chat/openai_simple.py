@@ -36,6 +36,7 @@ class OpenAISimpleBot(IChatSendAndResponse):
 
         # analyse response and errors
         msg = completion.choices[0].message
+        # TODO : error handling
 
         # build response
         response = ChatSingleMessage()

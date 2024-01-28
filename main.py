@@ -13,12 +13,16 @@ import src.gui.valueinput_parts as gui_value
 import src.gui.chat_parts as gui_chat
 
 import src.chat.rubber_duck as chatbot_duck
+import src.chat.openai_simple as chatbot_openai_simple
 
 # -------------------------------------------------------------
 def main(page: ft.Page):
     page.title = "Chat Template with Flet (Wotsuku)"
 
-    current_bot = chatbot_duck.RubberDuckBot()
+    # current_bot = chatbot_duck.RubberDuckBot()
+    current_bot = chatbot_openai_simple.OpenAISimpleBot()
+    current_bot.config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")})
+
 
     # ---------------------------------------------------------
     # event handler
@@ -41,6 +45,8 @@ def main(page: ft.Page):
 
         ui_chat_message.value = ""
 
+        # save chat log
+
         page.update()
 
     def on_click_chat_send_as_bot(e):
@@ -51,6 +57,8 @@ def main(page: ft.Page):
         ui_chat_history.add_chat("assistant", msg)
 
         ui_chat_message.value = ""
+
+        # save chat log
 
         page.update()
 
