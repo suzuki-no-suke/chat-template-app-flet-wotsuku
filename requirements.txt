@@ -3,3 +3,4 @@ sqlalchemy
 jinja2
 python-dotenv
 python-ulid
+openai
