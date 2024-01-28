@@ -26,6 +26,10 @@ class IChatSendAndResponse(ABC):
         """
         pass
 
+    @abstractmethod
+    def system_name(self):
+        pass
+
 from src.data.chat_history import ChatSingleMessage
 
 class EchoBot(IChatSendAndResponse):
@@ -43,3 +47,5 @@ class EchoBot(IChatSendAndResponse):
 
         return response
 
+    def system_name(self):
+        return "echobot-v0.0.1"

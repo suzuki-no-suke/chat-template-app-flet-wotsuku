@@ -20,5 +20,5 @@ class RubberDuckBot(ichat.IChatSendAndResponse):
 
         return response
 
-
-
+    def system_name(self):
+        return "rubber-duck-bot-v0.0.1"

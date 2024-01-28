@@ -42,3 +42,6 @@ class OpenAISimpleBot(IChatSendAndResponse):
         response = ChatSingleMessage()
         response.set_chat(msg.role, msg.content)
         return response
+
+    def system_name(self):
+        return "openai-simple-v0.0.1"
