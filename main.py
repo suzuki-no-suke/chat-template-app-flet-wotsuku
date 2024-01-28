@@ -25,9 +25,9 @@ import src.chat.openai_simple as chatbot_openai_simple
 def main(page: ft.Page):
     page.title = "Chat Template with Flet (Wotsuku)"
 
-    # current_bot = chatbot_duck.RubberDuckBot()
-    current_bot = chatbot_openai_simple.OpenAISimpleBot()
-    current_bot.config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")})
+    current_bot = chatbot_duck.RubberDuckBot()
+    # current_bot = chatbot_openai_simple.OpenAISimpleBot()
+    # current_bot.config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")})
 
     current_chat_history = data_history.ChatHistory()
     
