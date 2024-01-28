@@ -116,7 +116,7 @@ class ChatHistoryView(ft.UserControl):
 
     def clear(self):
         self.history_id = None
-        self.chatdisp.control.clear()
+        self.chatdisp.controls.clear()
 
     def _is_right_check(self, role):
         return  (role in self.rightside)

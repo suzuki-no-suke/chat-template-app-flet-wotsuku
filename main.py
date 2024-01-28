@@ -63,6 +63,33 @@ def main(page: ft.Page):
                 sess.add(chat_hist)
             sess.commit()
 
+    def load_chat_history():
+        drp_chat_history_selection.options.clear()
+        db = orm_base.SQLFactory.default_env()
+        with db.session_scope() as sess:
+            all_chat_data = sess.query(orm_chat.RecodeChatHistory.history_id, orm_chat.RecodeChatHistory.chat_titleline).all()
+            for data in all_chat_data:
+                hist_opt = ft.dropdown.Option(
+                    key=data.history_id,
+                    text=data.chat_titleline
+                )
+                drp_chat_history_selection.options.append(hist_opt)
+        page.update()
+
+    def initialize_app():
+        load_chat_history()
+    
+    def clear_chat():
+        # TODO : clear method
+        current_chat_history.history_id = None
+        current_chat_history.history = []
+
+        ui_chat_history.clear()
+
+        drp_chat_history_selection.value = None
+
+        page.update()
+
 
     # ---------------------------------------------------------
     # event handler
@@ -104,6 +131,20 @@ def main(page: ft.Page):
 
         page.update()
 
+    def on_change_drp_chat_history(e):
+        value = drp_chat_history_selection.value
+
+        db = orm_base.SQLFactory.default_env()
+        with db.session_scope() as sess:
+            existing_chat_hist = sess.query(orm_chat.RecodeChatHistory).filter_by(history_id=value).first()
+
+            current_chat_history.history_id = existing_chat_hist.history_id
+            current_chat_history.expand_chat(pickle.loads(existing_chat_hist.chat_log))
+
+            ui_chat_history.apply_chat_history(current_chat_history.history)
+
+    def on_click_clear_history(e):
+        clear_chat()
 
     # ---------------------------------------------------------
     # declare GUI parts
@@ -124,6 +165,7 @@ def main(page: ft.Page):
     drp_chat_history_selection = ft.Dropdown(
         label="Chat history",
         options=[],
+        on_change=on_change_drp_chat_history,
     )
     ui_chat_message = ft.TextField(label="Chat message")
     ui_chat_history = gui_chat.ChatHistoryView()
@@ -161,7 +203,10 @@ def main(page: ft.Page):
     )
     cont_tab_chat_and_history = ft.Container(
         ft.Column([
-            drp_chat_history_selection,
+            ft.Row([
+                ft.ElevatedButton("Clear Chat", on_click=on_click_clear_history),
+                drp_chat_history_selection,
+            ]),
             ui_chat_history,
             ft.Row([
                 ft.ElevatedButton("Bot", on_click=on_click_chat_send_as_bot),
@@ -258,6 +303,7 @@ def main(page: ft.Page):
     
     page.add(main_tabpages)
 
+    initialize_app()
 
 
 if __name__=='__main__':
