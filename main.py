@@ -12,9 +12,13 @@ from datetime import datetime
 import src.gui.valueinput_parts as gui_value
 import src.gui.chat_parts as gui_chat
 
+import src.chat.rubber_duck as chatbot_duck
+
 # -------------------------------------------------------------
 def main(page: ft.Page):
     page.title = "Chat Template with Flet (Wotsuku)"
+
+    current_bot = chatbot_duck.RubberDuckBot()
 
     # ---------------------------------------------------------
     # event handler
@@ -23,7 +27,17 @@ def main(page: ft.Page):
         if not msg:
             return
         
-        ui_chat_history.add_chat("user", msg)
+        last_send = ui_chat_history.add_chat("user", msg)
+
+        # build chat_environ
+        chat_environ = {
+            "last_send" : last_send,
+            "history" : ui_chat_history.gether_chat_history()
+        }
+
+        # wait for response
+        bot = current_bot.send(chat_environ)
+        ui_chat_history.add_chat(bot.role, bot.message)
 
         ui_chat_message.value = ""
 
