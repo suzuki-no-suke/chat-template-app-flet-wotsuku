@@ -43,6 +43,10 @@ def main(page: ft.Page):
         initial_info.add_input_text_embedded("dummy", "dummy content")
 
         # build chat history recode
+        history_added = False
+        if current_chat_history.history_id is None:
+            history_added = True
+        
         db = orm_base.SQLFactory.default_env()
         with db.session_scope() as sess:
             existing_chat_hist = sess.query(orm_chat.RecodeChatHistory).filter_by(history_id=current_chat_history.history_id).first()
@@ -62,6 +66,10 @@ def main(page: ft.Page):
                 chat_hist.created_at = datetime.now()
                 sess.add(chat_hist)
             sess.commit()
+
+        if history_added:
+            load_chat_history()
+            # select last added value
 
     def load_chat_history():
         drp_chat_history_selection.options.clear()
@@ -145,6 +153,7 @@ def main(page: ft.Page):
 
     def on_click_clear_history(e):
         clear_chat()
+        page.update()
 
     # ---------------------------------------------------------
     # declare GUI parts

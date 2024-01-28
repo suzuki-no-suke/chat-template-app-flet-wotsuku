@@ -118,6 +118,8 @@ class ChatHistoryView(ft.UserControl):
         self.history_id = None
         self.chatdisp.controls.clear()
 
+        self.update()
+
     def _is_right_check(self, role):
         return  (role in self.rightside)
 
@@ -154,3 +156,5 @@ class ChatHistoryView(ft.UserControl):
         for c in chat_list:
             chat_view = self._gen_chatmessage(c)
             self.chatdisp.controls.append(chat_view)
+        
+        self.update()
