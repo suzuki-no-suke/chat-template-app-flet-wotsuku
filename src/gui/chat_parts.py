@@ -130,7 +130,9 @@ class ChatHistoryView(ft.UserControl):
         # NOTE : need each view update - update message does not distribute
         self.chatdisp.update()
 
-    def gether_chat_history(self) -> chat_hist.ChatSingleMessage:
+        return single_msg
+
+    def gether_chat_history(self) -> list[chat_hist.ChatSingleMessage]:
         """chat history returns by list of  ChatSingleMessage"""
         datalist = []
         for c in self.chatdisp.controls:
