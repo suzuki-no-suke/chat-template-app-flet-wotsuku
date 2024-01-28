@@ -137,7 +137,7 @@ class ChatHistoryView(ft.UserControl):
         datalist = []
         for c in self.chatdisp.controls:
             if isinstance(c, SingleChatMessageView):
-                datalist.append(c.gether_chat_data)
+                datalist.append(c.gether_chat_data())
         return datalist
     
     def _gen_chatmessage(self, chatdata : chat_hist.ChatSingleMessage):
