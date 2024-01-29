@@ -216,7 +216,7 @@ def main(page: ft.Page):
         options=[],
         on_change=on_change_drp_chat_history,
     )
-    ui_chat_message = ft.TextField(label="Chat message")
+    ui_chat_message = ft.TextField(label="Chat message", multiline=True, max_lines=5, text_size=11)
     ui_chat_history = gui_chat.ChatHistoryView()
     drp_template_file_viewer_selection = ft.Dropdown(
         label="Select template",
@@ -253,18 +253,42 @@ def main(page: ft.Page):
     )
     cont_tab_chat_and_history = ft.Container(
         ft.Column([
-            ft.Row([
-                ft.ElevatedButton("Clear Chat", on_click=on_click_clear_history),
-                drp_chat_history_selection,
+                ft.ResponsiveRow([
+                        ft.Column([
+                                ft.ElevatedButton("Clear Chat", on_click=on_click_clear_history),
+                            ], col=2,
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                        ft.Column([
+                                drp_chat_history_selection,
+                            ], col=10)
+                    ],
+                    alignment=ft.alignment.center),
+                ft.ResponsiveRow([
+                        ui_chat_history,
+                    ],
+                    expand=True),
+                ft.ResponsiveRow([
+                        ft.Column([
+                                ft.ElevatedButton("Bot", on_click=on_click_chat_send_as_bot),
+                            ],
+                            col=1.5,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                        ft.Column([
+                                ui_chat_message,
+                            ],
+                            col=9,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                        ft.Column([
+                                ft.ElevatedButton("Send", on_click=on_click_chat_send)
+                            ],
+                            col=1.5,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+                    ],
+                    alignment=ft.alignment.center)
             ]),
-            ui_chat_history,
-            ft.Row([
-                ft.ElevatedButton("Bot", on_click=on_click_chat_send_as_bot),
-                ui_chat_message,
-                ft.ElevatedButton("Send", on_click=on_click_chat_send)
-            ])
-        ])
-    )
+        bgcolor=ft.colors.YELLOW,
+        alignment=ft.alignment.center)
     cont_template_edit = ft.Container(
         ft.Column([
             drp_template_file_viewer_selection,
