@@ -6,8 +6,10 @@ class ValueInputView(ft.UserControl):
         self.gui_resource_list = ft.Dropdown(label="select resource")
         self.name = name
         self.input_value = ft.TextField(
-                label=self.name,
-                max_lines=5)
+            label=self.name,
+            multiline=True,
+            min_lines=1,
+            max_lines=5)
 
         super().__init__()
 

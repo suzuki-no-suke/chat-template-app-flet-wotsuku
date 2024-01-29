@@ -209,7 +209,7 @@ def main(page: ft.Page):
         label="Chat Template",
         multiline=True,
         min_lines=25,
-        max_lines=25,
+        expand=True,
     )
     drp_chat_history_selection = ft.Dropdown(
         label="Chat history",
@@ -226,7 +226,7 @@ def main(page: ft.Page):
             ft.dropdown.Option("file 3"),
         ]
     )
-    ui_valueinput_variables_view = ft.Column([])
+    ui_valueinput_variables_view = ft.Column([], scroll=True)
 
     # ---------------------------------------------------------
     # building tag contents
@@ -245,7 +245,9 @@ def main(page: ft.Page):
                     ft.Text("input values"),
                     ft.ElevatedButton("Generate", on_click=on_click_generate),
                     ui_valueinput_variables_view,
-                ])
+                ],
+                expand=True,
+                scroll=ft.ScrollMode.AUTO)
             )
         ])
     )

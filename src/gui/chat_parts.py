@@ -106,7 +106,7 @@ class ChatHistoryView(ft.UserControl):
     """
     def __init__(self):
         self.history_id = None
-        self.chatdisp = ft.Column([])
+        self.chatdisp = ft.Column([], expand=True, scroll=ft.ScrollMode.AUTO)
 
         self.rightside = ["user"]
         super().__init__()
