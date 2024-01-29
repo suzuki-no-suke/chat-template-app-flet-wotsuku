@@ -8,7 +8,7 @@ import re
 import jinja2
 
 import src.orm.base as orm_base
-import src.orm.scheme.chat_history as orm_chat
+import src.orm.table.chat_history as orm_chat
 
 import src.gui.valueinput_parts as gui_value
 import src.gui.chat_parts as gui_chat
@@ -42,30 +42,21 @@ def main(page: ft.Page):
         initial_info.set_template_by_text("dummy content")
         initial_info.add_input_text_embedded("dummy", "dummy content")
 
-        # build chat history recode
+        # check list update need or not
         history_added = False
         if current_chat_history.history_id is None:
             history_added = True
-        
+
+        # save history
         db = orm_base.SQLFactory.default_env()
-        with db.session_scope() as sess:
-            existing_chat_hist = sess.query(orm_chat.RecodeChatHistory).filter_by(history_id=current_chat_history.history_id).first()
-            if existing_chat_hist:
-                existing_chat_hist.chat_titleline = current_chat_history.system + " - " + datetime.now().strftime("%Y-%m-%d %H:%M")
-                existing_chat_hist.chat_log = pickle.dumps(current_chat_history.gether_chat())
-                existing_chat_hist.initial_values = pickle.dumps(initial_info.gether_info())
-                existing_chat_hist.updated_at = datetime.now()
-            else:
-                chat_hist = orm_chat.RecodeChatHistory()
-                if current_chat_history.history_id is None:
-                    current_chat_history.history_id = str(ULID())
-                chat_hist.history_id = current_chat_history.history_id
-                chat_hist.chat_titleline = current_chat_history.system + datetime.now().strftime("%Y-%m-%d %H:%M")
-                chat_hist.chat_log = pickle.dumps(current_chat_history.gether_chat())
-                chat_hist.initial_values = pickle.dumps(initial_info.gether_info())
-                chat_hist.created_at = datetime.now()
-                sess.add(chat_hist)
-            sess.commit()
+        saver = orm_chat.ChatHistoryTable(db)
+        history_id = saver.upsert_history(
+            current_chat_history.history_id,
+            current_chat_history.system + " - " + datetime.now().strftime("%Y-%m-%d %H:%M"),
+            current_chat_history.gether_chat(),
+            initial_info.gether_info(),
+        )
+        current_chat_history.history_id = history_id
 
         if history_added:
             load_chat_history()
@@ -74,14 +65,14 @@ def main(page: ft.Page):
     def load_chat_history():
         drp_chat_history_selection.options.clear()
         db = orm_base.SQLFactory.default_env()
-        with db.session_scope() as sess:
-            all_chat_data = sess.query(orm_chat.RecodeChatHistory.history_id, orm_chat.RecodeChatHistory.chat_titleline).all()
-            for data in all_chat_data:
-                hist_opt = ft.dropdown.Option(
-                    key=data.history_id,
-                    text=data.chat_titleline
-                )
-                drp_chat_history_selection.options.append(hist_opt)
+        loader = orm_chat.ChatHistoryTable(db)
+        all_chat_data = loader.get_history_all()
+        for data in all_chat_data:
+            hist_opt = ft.dropdown.Option(
+                key=data[0],
+                text=data[1]
+            )
+            drp_chat_history_selection.options.append(hist_opt)
         page.update()
 
     def initialize_app():
@@ -191,16 +182,18 @@ def main(page: ft.Page):
         page.update()
 
     def on_change_drp_chat_history(e):
-        value = drp_chat_history_selection.value
+        key = drp_chat_history_selection.value
 
         db = orm_base.SQLFactory.default_env()
-        with db.session_scope() as sess:
-            existing_chat_hist = sess.query(orm_chat.RecodeChatHistory).filter_by(history_id=value).first()
+        reader = orm_chat.ChatHistoryTable(db)
+        existing_chat_hist = reader.get_history_recode(key)
 
-            current_chat_history.history_id = existing_chat_hist.history_id
-            current_chat_history.expand_chat(pickle.loads(existing_chat_hist.chat_log))
+        current_chat_history.history_id = existing_chat_hist.history_id
+        current_chat_history.expand_chat(pickle.loads(existing_chat_hist.chat_log))
 
-            ui_chat_history.apply_chat_history(current_chat_history.history)
+        ui_chat_history.apply_chat_history(current_chat_history.history)
+
+        page.update()
 
     def on_click_clear_history(e):
         clear_chat()

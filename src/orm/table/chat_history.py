@@ -22,8 +22,14 @@ class ChatHistoryTable:
             # NOTE : history_id = None でもなんとかしてくれるのでなんか None ハンドリングのないコード
             existing_hist = sess.query(orm_chat.RecodeChatHistory).filter_by(history_id=history_id).first()
             if existing_hist:
-                recode.created_at = existing_hist.created_at
-                existing_hist = recode
+                sess.query(orm_chat.RecodeChatHistory).filter_by(history_id=history_id).update(
+                    {
+                        orm_chat.RecodeChatHistory.chat_titleline : recode.chat_titleline,
+                        orm_chat.RecodeChatHistory.chat_log : recode.chat_log,
+                        orm_chat.RecodeChatHistory.initial_values : recode.initial_values,
+                        orm_chat.RecodeChatHistory.updated_at : recode.updated_at,
+                    }
+                )
             else:
                 if history_id is None:
                     history_id = str(ULID())
@@ -49,7 +55,7 @@ class ChatHistoryTable:
         recode.chat_log = pickle.dumps(chatlog)
         recode.initial_values = pickle.dumps(initval)
         recode.updated_at = update_at
-        self.upsert_history_recode(recode)
+        return self.upsert_history_recode(recode)
 
     def get_history_recode(self, history_id):
         copy_of_hist = None
@@ -65,8 +71,49 @@ class ChatHistoryTable:
         return copy_of_hist
 
 
-    def get_history(self, history_id):
+    def get_history_all(self):
+        """return history id and title
+
+        Return
+        ------
+        list(tuple(str, str))   : key = history_id, text = chat_titleline
         """
-        
+        data_list = []
+        with self.db.session_scope() as sess:
+            all_chat_data = sess.query(orm_chat.RecodeChatHistory.history_id, orm_chat.RecodeChatHistory.chat_titleline).all()
+            for data in all_chat_data:
+                data_list.append(
+                    (
+                        data.history_id,
+                        data.chat_titleline
+                    )
+                )
+        return data_list
+
+    def get_history_range(self, start_index, end_index):
         """
-        pass
+        Get history within the specified range of indices.
+
+        Parameters
+        ----------
+        start_index : int
+            Start index of the range.
+        end_index : int
+            End index of the range.
+
+        Returns
+        -------
+        list(tuple(str, str))
+            List of history IDs and titles within the specified range.
+        """
+        data_list = []
+        with self.db.session_scope() as sess:
+            all_chat_data = sess.query(orm_chat.RecodeChatHistory.history_id, orm_chat.RecodeChatHistory.chat_titleline).slice(start_index, end_index).all()
+            for data in all_chat_data:
+                data_list.append(
+                    (
+                        data.history_id,
+                        data.chat_titleline
+                    )
+                )
+        return data_list
