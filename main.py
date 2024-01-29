@@ -67,12 +67,8 @@ def main(page: ft.Page):
         db = orm_base.SQLFactory.default_env()
         loader = orm_chat.ChatHistoryTable(db)
         all_chat_data = loader.get_history_all()
-        for data in all_chat_data:
-            hist_opt = ft.dropdown.Option(
-                key=data[0],
-                text=data[1]
-            )
-            drp_chat_history_selection.options.append(hist_opt)
+        drp_chat_history_selection.options = [
+            ft.dropdown.Option(key=data[0], text=data[1]) for data in all_chat_data]
         page.update()
 
     def initialize_app():
@@ -100,16 +96,11 @@ def main(page: ft.Page):
 
         # set file list to dropdown
         drp_template_file_selection.options.clear()
-        # TODO : usual appending to list can <internal list directive(?)>
-        for filename in file_list:
-            fullpath = os.path.join(dir, filename)
-
-            drp_template_file_selection.options.append(
-                ft.dropdown.Option(
-                    key=fullpath,
-                    text=filename
-                )
-            )
+        drp_template_file_selection.options = [
+            ft.dropdown.Option(
+                key=os.path.join(dir, filename),
+                text=filename
+            ) for filename in file_list ]
 
         page.update()
 
@@ -133,9 +124,7 @@ def main(page: ft.Page):
 
     def render_template():
         template_text = txt_template_contents.value
-        mappings = {}
-        for iv in ui_valueinput_variables_view.controls:
-            mappings[iv.name] = iv.get_value()
+        mappings = {iv.name: iv.get_value() for iv in ui_valueinput_variables_view.controls}
         rendered_template = jinja2.Template(template_text).render(mappings)
 
         ui_chat_message.value = rendered_template
