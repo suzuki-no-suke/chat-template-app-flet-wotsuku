@@ -1,5 +1,7 @@
 import src.orm.base as orm_base
-import src.orm.chat_history as orm_db_chat_history
+
+# need for recognize by SQL Alchemy
+import src.orm.scheme.chat_history as orm_chat
 
 from dotenv import load_dotenv
 

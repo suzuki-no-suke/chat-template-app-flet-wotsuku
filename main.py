@@ -8,7 +8,7 @@ import re
 import jinja2
 
 import src.orm.base as orm_base
-import src.orm.chat_history as orm_chat
+import src.orm.scheme.chat_history as orm_chat
 
 import src.gui.valueinput_parts as gui_value
 import src.gui.chat_parts as gui_chat

@@ -1,6 +1,3 @@
-
-import src.orm.chat_history as orm_chat
-
 from datetime import datetime
 
 class ChatSingleMessage:

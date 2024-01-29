@@ -3,7 +3,7 @@ import unittest
 from dotenv import load_dotenv
 
 import src.orm.base as orm_base
-import src.orm.chat_history as orm_chat
+import src.orm.scheme.chat_history as orm_chat
 
 from ulid import ULID
 import pickle
@@ -25,7 +25,7 @@ class TestOrmChatHistory(unittest.TestCase):
                     "version" : "test-v0.0.1",
                     "system" : "test-v0.0.1",
                     "history" : [
-                        {"role" : "user", "message" : "chat kind of message", "time" : "2023-01-27 21:44"},
+                        {"role" : "user", "message" : "chat kind of message", "time" : "2023-01-27 21:44:00"},
                     ]
                 })
             history.initial_values = pickle.dumps({

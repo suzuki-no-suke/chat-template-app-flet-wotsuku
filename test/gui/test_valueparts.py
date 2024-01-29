@@ -5,4 +5,4 @@ import unittest
 class TestGUIValueInput(unittest.TestCase):
 
     def test_build(self):
-        view = gui_value.ValueInputView()
+        view = gui_value.ValueInputView("testdata")
