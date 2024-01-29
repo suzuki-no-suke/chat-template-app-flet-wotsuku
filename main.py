@@ -51,7 +51,7 @@ def main(page: ft.Page):
         with db.session_scope() as sess:
             existing_chat_hist = sess.query(orm_chat.RecodeChatHistory).filter_by(history_id=current_chat_history.history_id).first()
             if existing_chat_hist:
-                existing_chat_hist.chat_titleline = current_chat_history.system + datetime.now().strftime("%Y-%m-%d %H:%M")
+                existing_chat_hist.chat_titleline = current_chat_history.system + " - " + datetime.now().strftime("%Y-%m-%d %H:%M")
                 existing_chat_hist.chat_log = pickle.dumps(current_chat_history.gether_chat())
                 existing_chat_hist.initial_values = pickle.dumps(initial_info.gether_info())
                 existing_chat_hist.updated_at = datetime.now()
