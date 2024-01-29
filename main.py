@@ -18,14 +18,16 @@ import src.data.chat_template as data_template
 
 import src.chat.rubber_duck as chatbot_duck
 import src.chat.openai_simple as chatbot_openai_simple
+import src.chat.squash_wall as chatbot_squash_wall
 
 # -------------------------------------------------------------
 def main(page: ft.Page):
     page.title = "Chat Template with Flet (Wotsuku)"
 
-    current_bot = chatbot_duck.RubberDuckBot()
+    # current_bot = chatbot_duck.RubberDuckBot()
     # current_bot = chatbot_openai_simple.OpenAISimpleBot()
     # current_bot.config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")})
+    current_bot = chatbot_squash_wall.SquashWall()
 
     current_chat_history = data_history.ChatHistory()
     
@@ -164,7 +166,8 @@ def main(page: ft.Page):
 
         # wait for response
         bot = current_bot.send(chat_environ)
-        ui_chat_history.add_chat(bot.role, bot.message)
+        if bot:
+            ui_chat_history.add_chat(bot.role, bot.message)
 
         ui_chat_message.value = ""
 
