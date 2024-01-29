@@ -287,7 +287,6 @@ def main(page: ft.Page):
                     ],
                     alignment=ft.alignment.center)
             ]),
-        bgcolor=ft.colors.YELLOW,
         alignment=ft.alignment.center)
     cont_template_edit = ft.Container(
         ft.Column([

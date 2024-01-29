@@ -57,7 +57,10 @@ class SingleChatMessageView(ft.UserControl):
             label=f"{role_text} - {time_text}",
             value=self.message,
             read_only=True,
-            multiline=True)
+            multiline=True,
+            max_lines=10,
+            expand=True,
+            text_size=11)
 
         if self.is_right:
             self.gui_row.controls.append(self.gui_text)
@@ -112,7 +115,10 @@ class ChatHistoryView(ft.UserControl):
         super().__init__()
 
     def build(self):
-        return self.chatdisp
+        return ft.Container(
+            content=self.chatdisp,
+            expand=True
+        )
 
     def clear(self):
         self.history_id = None
