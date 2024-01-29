@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import src.data.chat_history as chat_hist
 
 class SingleChatMessageView(ft.UserControl):
-    """単一チャット送信・受信メッセージの表示
+    """Single chat message sent/recieved display
     """
     def __init__(self, role, message, is_right=True, msg_time=datetime.now()):
         self.role = role
@@ -105,7 +105,7 @@ class SingleChatMessageView(ft.UserControl):
 
 class ChatHistoryView(ft.UserControl):
     """
-    チャット履歴の表示と保存
+    display and datakeep of chat whole chat history
     """
     def __init__(self):
         self.history_id = None
