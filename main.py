@@ -75,6 +75,7 @@ def main(page: ft.Page):
         load_chat_history()
         load_template_filelist()
         load_chatbot_list()
+        load_edit_target_templates()
     
     def clear_chat():
         # TODO : clear method
@@ -123,6 +124,14 @@ def main(page: ft.Page):
 
         page.update()
 
+    def load_template_edit_target_contents(filepath):
+        # load whole contents
+        with open(filepath, 'rt', encoding='utf-8') as file:
+            file_contents = file.read()
+        txt_edit_template.value = file_contents
+
+        page.update()
+
     def render_template():
         template_text = txt_template_contents.value
         mappings = {iv.name: iv.get_value() for iv in ui_valueinput_variables_view.controls}
@@ -152,6 +161,31 @@ def main(page: ft.Page):
         ]
 
         page.update()
+
+    def load_edit_target_templates():
+        # TODO : out to not .env config
+        dir = os.path.abspath(os.getenv("DIR_TEMPLATES"))
+        
+        # load all .j2 file in dir
+        file_list = [f for f in os.listdir(dir) if f.endswith('.j2')]
+        print(file_list)
+
+        # set file list to dropdown
+        drp_edit_template_selection.options.clear()
+        drp_edit_template_selection.options = [
+            ft.dropdown.Option(
+                key=os.path.join(dir, filename),
+                text=filename
+            ) for filename in file_list ]
+
+        page.update()
+
+    def send_status_message(msg):
+        print(msg)
+
+    def save_template_file_as(filepath, contents):
+        with open(filepath, "wt", encoding="utf-8") as f:
+            f.write(contents)
 
     # ---------------------------------------------------------
     # event handler
@@ -230,6 +264,64 @@ def main(page: ft.Page):
         current_bot = loaded_bots_dict[value]
         print(f"current bot changed = {value} / {current_bot}")
 
+    def on_change_drp_edit_template_select(e):
+        value = drp_edit_template_selection.value
+        load_template_edit_target_contents(value)
+        page.update()
+
+    def on_click_edit_template_clear(e):
+        drp_edit_template_selection.value = None
+        txt_edit_template.value = ""
+        page.update()
+
+    def on_click_edit_relod_template(e):
+        value = drp_edit_template_selection.value
+        if not value:
+            send_status_message("template dosen't saved / loaded file")
+            return
+        if not os.path.exists(value):
+            send_status_message(f"template does not found, deleted. {value}")
+            return
+
+        # reload
+        load_template_edit_target_contents(value)
+        page.update()
+
+    def on_click_edit_save_overwrite(e):
+        value = drp_edit_template_selection.value
+        if value is None:
+            send_status_message("template dosen't saved / loaded file")
+            return
+
+        contents = txt_edit_template.value
+        filepath = os.path.join(os.path.abspath(os.getenv("DIR_TEMPLATES")), value)
+        save_template_file_as(filepath, contents)
+        load_template_edit_target_contents(filepath)
+
+        send_status_message(f"file saved as {filepath}")
+
+        page.update()
+
+    def on_click_edit_saveas(e):
+        # TODO : if porting to web or other platform, it maybe need change
+        overlay_dialog_filesave.save_file(
+            dialog_title="Save as template",
+            initial_directory=os.path.abspath(os.getenv("DIR_TEMPLATES")))
+
+
+    def on_result_pick_file_save(e):
+        print(overlay_dialog_filesave.result)
+        if overlay_dialog_filesave.result.path is not None:
+            contents = txt_edit_template.value
+            filepath = overlay_dialog_filesave.result.path
+            save_template_file_as(filepath, contents)
+            load_template_filelist()
+            load_edit_target_templates()
+
+            send_status_message(f"file saved as {filepath}")
+
+        page.update()
+
     # ---------------------------------------------------------
     # declare GUI parts
     drp_template_file_selection = ft.Dropdown(
@@ -255,15 +347,14 @@ def main(page: ft.Page):
     )
     ui_chat_message = ft.TextField(label="Chat message", multiline=True, max_lines=5, text_size=11)
     ui_chat_history = gui_chat.ChatHistoryView()
-    drp_template_file_viewer_selection = ft.Dropdown(
+    drp_edit_template_selection = ft.Dropdown(
         label="Select template",
-        options=[
-            ft.dropdown.Option("file 1"),
-            ft.dropdown.Option("file 2"),
-            ft.dropdown.Option("file 3"),
-        ]
+        options=[],
+        on_change=on_change_drp_edit_template_select,
     )
     ui_valueinput_variables_view = ft.Column([], scroll=True)
+    txt_edit_template = ft.TextField(label="Edit template", multiline=True, min_lines=10, expand=True, text_size=11)
+    overlay_dialog_filesave = ft.FilePicker(on_result=on_result_pick_file_save)
 
     # ---------------------------------------------------------
     # building tag contents
@@ -330,16 +421,13 @@ def main(page: ft.Page):
         alignment=ft.alignment.center)
     cont_template_edit = ft.Container(
         ft.Column([
-            drp_template_file_viewer_selection,
-            ft.TextField(
-                multiline=True,
-                min_lines=3,
-            ),
+            drp_edit_template_selection,
+            txt_edit_template,
             ft.Row([
-                ft.ElevatedButton("Create"),
-                ft.ElevatedButton("Reload"),
-                ft.ElevatedButton("Save"),
-                ft.ElevatedButton("Save as")
+                ft.ElevatedButton("Clear", on_click=on_click_edit_template_clear),
+                ft.ElevatedButton("Reload", on_click=on_click_edit_relod_template),
+                ft.ElevatedButton("Save", on_click=on_click_edit_save_overwrite),
+                ft.ElevatedButton("Save as", on_click=on_click_edit_saveas)
             ])
         ])
     )
@@ -415,6 +503,8 @@ def main(page: ft.Page):
     main_tabpages.tabs.append(tab_configuration)
     
     page.add(main_tabpages)
+
+    page.overlay.append(overlay_dialog_filesave)
 
     initialize_app()
 
