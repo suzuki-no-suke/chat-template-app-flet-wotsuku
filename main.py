@@ -16,6 +16,7 @@ import src.gui.chat_parts as gui_chat
 import src.data.chat_history as data_history
 import src.data.chat_template as data_template
 
+import src.chat.i_chat as chatbot_basics
 import src.chat.rubber_duck as chatbot_duck
 import src.chat.openai_simple as chatbot_openai_simple
 import src.chat.squash_wall as chatbot_squash_wall
@@ -24,9 +25,8 @@ import src.chat.squash_wall as chatbot_squash_wall
 def main(page: ft.Page):
     page.title = "Chat Template with Flet (Wotsuku)"
 
-    # current_bot = chatbot_duck.RubberDuckBot()
-    # current_bot = chatbot_openai_simple.OpenAISimpleBot()
-    # current_bot.config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")})
+    loaded_bots_dict = {}
+
     current_bot = chatbot_squash_wall.SquashWall()
 
     current_chat_history = data_history.ChatHistory()
@@ -74,6 +74,7 @@ def main(page: ft.Page):
     def initialize_app():
         load_chat_history()
         load_template_filelist()
+        load_chatbot_list()
     
     def clear_chat():
         # TODO : clear method
@@ -129,6 +130,29 @@ def main(page: ft.Page):
 
         ui_chat_message.value = rendered_template
 
+    def load_chatbot_list():
+        bots = [
+            chatbot_basics.EchoBot(),
+            chatbot_duck.RubberDuckBot(),
+            chatbot_openai_simple.OpenAISimpleBot().config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")}),
+            chatbot_squash_wall.SquashWall(),
+        ]
+
+        nonlocal loaded_bots_dict
+        loaded_bots_dict = {b.system_name():b for b in bots}
+
+        print(loaded_bots_dict)
+
+        drp_chat_model_selection.options.clear()
+        drp_chat_model_selection.options = [
+            ft.dropdown.Option(
+                key=name,
+            )
+            for name, _ in loaded_bots_dict.items()
+        ]
+
+        page.update()
+
     # ---------------------------------------------------------
     # event handler
     def on_click_chat_send(e):
@@ -145,9 +169,11 @@ def main(page: ft.Page):
         }
 
         # wait for response
-        bot = current_bot.send(chat_environ)
-        if bot:
-            ui_chat_history.add_chat(bot.role, bot.message)
+        print(f"current bot -> {current_bot.system_name()} + {chat_environ}")
+
+        bot_response = current_bot.send(chat_environ)
+        if bot_response:
+            ui_chat_history.add_chat(bot_response.role, bot_response.message)
 
         ui_chat_message.value = ""
 
@@ -160,7 +186,7 @@ def main(page: ft.Page):
         msg = ui_chat_message.value
         if not msg:
             return
-        
+
         ui_chat_history.add_chat("assistant", msg)
 
         ui_chat_message.value = ""
@@ -198,6 +224,12 @@ def main(page: ft.Page):
         main_tabpages.selected_index = 1
         page.update()
 
+    def on_change_drp_chatbot(e):
+        value = drp_chat_model_selection.value
+        nonlocal current_bot
+        current_bot = loaded_bots_dict[value]
+        print(f"current bot changed = {value} / {current_bot}")
+
     # ---------------------------------------------------------
     # declare GUI parts
     drp_template_file_selection = ft.Dropdown(
@@ -210,6 +242,11 @@ def main(page: ft.Page):
         multiline=True,
         min_lines=25,
         expand=True,
+    )
+    drp_chat_model_selection = ft.Dropdown(
+        label="Select model",
+        options=[],
+        on_change=on_change_drp_chatbot,
     )
     drp_chat_history_selection = ft.Dropdown(
         label="Chat history",
@@ -253,6 +290,9 @@ def main(page: ft.Page):
     )
     cont_tab_chat_and_history = ft.Container(
         ft.Column([
+                ft.Row([
+                    drp_chat_model_selection
+                    ]),
                 ft.ResponsiveRow([
                         ft.Column([
                                 ft.ElevatedButton("Clear Chat", on_click=on_click_clear_history),

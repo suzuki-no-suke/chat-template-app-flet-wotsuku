@@ -12,6 +12,7 @@ class RubberDuckBot(ichat.IChatSendAndResponse):
             - Nothing
         """
         self.config = config_dict
+        return self
 
     def send(self, chat_environ):
         # build response

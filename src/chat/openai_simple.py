@@ -13,6 +13,7 @@ class OpenAISimpleBot(IChatSendAndResponse):
         self.client = OpenAI(
             api_key=config_dict["OPENAI_API_KEY"]
         )
+        return self
 
     def send(self, chat_environ):
         # history to completion api
@@ -29,14 +30,18 @@ class OpenAISimpleBot(IChatSendAndResponse):
                 "content" : m.message,
             })
 
+        # call chat api
         completion = self.client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=message_list
         )
 
+        print(completion)
+
         # analyse response and errors
         msg = completion.choices[0].message
         # TODO : error handling
+
 
         # build response
         response = ChatSingleMessage()
