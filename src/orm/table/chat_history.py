@@ -1,5 +1,7 @@
 import src.orm.scheme.chat_history as orm_chat
 
+from sqlalchemy import desc
+
 from ulid import ULID
 from datetime import datetime
 import pickle
@@ -80,7 +82,10 @@ class ChatHistoryTable:
         """
         data_list = []
         with self.db.session_scope() as sess:
-            all_chat_data = sess.query(orm_chat.RecodeChatHistory.history_id, orm_chat.RecodeChatHistory.chat_titleline).all()
+            all_chat_data = sess \
+                .query(orm_chat.RecodeChatHistory.history_id, orm_chat.RecodeChatHistory.chat_titleline) \
+                .order_by(desc(orm_chat.RecodeChatHistory.updated_at)) \
+                .all()
             for data in all_chat_data:
                 data_list.append(
                     (

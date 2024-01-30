@@ -9,7 +9,8 @@ class ValueInputView(ft.UserControl):
             label=self.name,
             multiline=True,
             min_lines=1,
-            max_lines=5)
+            max_lines=5,
+            text_size=11)
 
         super().__init__()
 

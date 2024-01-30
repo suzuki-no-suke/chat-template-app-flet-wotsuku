@@ -213,6 +213,8 @@ def main(page: ft.Page):
 
         # save chat log
         save_current_chatlog()
+        
+        ui_chat_message.focus()
 
         page.update()
 
@@ -227,6 +229,8 @@ def main(page: ft.Page):
 
         # save chat log
         save_current_chatlog()
+        
+        ui_chat_message.focus()
 
         page.update()
 
@@ -241,7 +245,7 @@ def main(page: ft.Page):
         current_chat_history.expand_chat(pickle.loads(existing_chat_hist.chat_log))
 
         ui_chat_history.apply_chat_history(current_chat_history.history)
-
+        
         page.update()
 
     def on_click_clear_history(e):
@@ -327,6 +331,7 @@ def main(page: ft.Page):
     drp_template_file_selection = ft.Dropdown(
         label="Template file selection",
         options=[],
+        expand=True,
         on_change=on_change_drp_template_file_select
     )
     txt_template_contents = ft.TextField(
@@ -334,6 +339,7 @@ def main(page: ft.Page):
         multiline=True,
         min_lines=25,
         expand=True,
+        text_size=11,
     )
     drp_chat_model_selection = ft.Dropdown(
         label="Select model",
@@ -353,7 +359,7 @@ def main(page: ft.Page):
         on_change=on_change_drp_edit_template_select,
     )
     ui_valueinput_variables_view = ft.Column([], scroll=True)
-    txt_edit_template = ft.TextField(label="Edit template", multiline=True, min_lines=10, expand=True, text_size=11)
+    txt_edit_template = ft.TextField(label="Edit template", multiline=True, min_lines=30, expand=True, text_size=11)
     overlay_dialog_filesave = ft.FilePicker(on_result=on_result_pick_file_save)
 
     # ---------------------------------------------------------
@@ -362,7 +368,11 @@ def main(page: ft.Page):
         ft.Row([
             ft.Container(
                 content=ft.Column([
-                    drp_template_file_selection,
+                    ft.Row([
+                        drp_template_file_selection,
+                        ft.ElevatedButton("List Reload"),
+                        ft.ElevatedButton("File Reload"),
+                    ]),
                     txt_template_contents,
                 ]),
                 expand=True
