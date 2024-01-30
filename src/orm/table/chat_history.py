@@ -13,7 +13,7 @@ class ChatHistoryTable:
     def is_exist(self, history_id):
         exists = False
         with self.db.session_scope() as sess:
-            existing_chat_hist = sess.query(orm_chat.RecodeChatHistory).filter_by(history_id=current_chat_history.history_id).first()
+            existing_chat_hist = sess.query(orm_chat.RecodeChatHistory).filter_by(history_id=history_id).first()
             exists = existing_chat_hist
         return exists
 

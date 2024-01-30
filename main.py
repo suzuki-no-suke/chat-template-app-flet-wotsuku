@@ -326,6 +326,51 @@ def main(page: ft.Page):
 
         page.update()
 
+    def on_result_template_contents_saveas(e):
+        print(overlay_dialog_template_content_filesave.result)
+        if overlay_dialog_template_content_filesave.result.path is not None:
+            contents = txt_template_contents.value
+            filepath = overlay_dialog_template_content_filesave.result.path
+            save_template_file_as(filepath, contents)
+            load_template_filelist()
+            load_edit_target_templates()
+
+            send_status_message(f"template content saved as {filepath}")
+
+        page.update()
+
+    def on_click_reload_template_list(e):
+        load_template_filelist()
+        page.update()
+
+    def on_click_reload_template_file_content(e):
+        value = drp_template_file_selection.value
+        send_status_message(f"reload template file -> {value}")
+        if value and os.path.exists(value):
+            load_template_contents(value)
+            page.update()
+
+    def on_click_overwrite_loaded_template(e):
+        value = drp_template_file_selection.value
+        if value is None:
+            on_click_saveas_loaded_template(e)
+            return
+
+        contents = txt_template_contents.value
+        filepath = value
+        save_template_file_as(filepath, contents)
+        load_template_contents(filepath)
+
+        send_status_message(f"template contents overwrite : saved as {filepath}")
+
+        page.update()
+
+    def on_click_saveas_loaded_template(e):
+        # TODO : if porting to web or other platform, it maybe need change
+        overlay_dialog_template_content_filesave.save_file(
+            dialog_title="Save as other template",
+            initial_directory=os.path.abspath(os.getenv("DIR_TEMPLATES")))
+
     # ---------------------------------------------------------
     # declare GUI parts
     drp_template_file_selection = ft.Dropdown(
@@ -361,6 +406,7 @@ def main(page: ft.Page):
     ui_valueinput_variables_view = ft.Column([], scroll=True)
     txt_edit_template = ft.TextField(label="Edit template", multiline=True, min_lines=30, expand=True, text_size=11)
     overlay_dialog_filesave = ft.FilePicker(on_result=on_result_pick_file_save)
+    overlay_dialog_template_content_filesave = ft.FilePicker(on_result=on_result_template_contents_saveas)
 
     # ---------------------------------------------------------
     # building tag contents
@@ -370,10 +416,14 @@ def main(page: ft.Page):
                 content=ft.Column([
                     ft.Row([
                         drp_template_file_selection,
-                        ft.ElevatedButton("List Reload"),
-                        ft.ElevatedButton("File Reload"),
+                        ft.ElevatedButton("List Reload", on_click=on_click_reload_template_list),
+                        ft.ElevatedButton("File Reload", on_click=on_click_reload_template_file_content),
                     ]),
                     txt_template_contents,
+                    ft.Row([
+                        ft.ElevatedButton("Overwrite", on_click=on_click_overwrite_loaded_template),
+                        ft.ElevatedButton("Save as", on_click=on_click_saveas_loaded_template),
+                    ]),
                 ]),
                 expand=True
             ),
@@ -515,6 +565,7 @@ def main(page: ft.Page):
     page.add(main_tabpages)
 
     page.overlay.append(overlay_dialog_filesave)
+    page.overlay.append(overlay_dialog_template_content_filesave)
 
     initialize_app()
 
