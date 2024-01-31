@@ -27,6 +27,8 @@ class SingleChatMessageView(ft.UserControl):
             icondata = ft.Icon(name=ft.icons.CHAT_ROUNDED)
         elif role == "system":
             icondata = ft.Icon(name=ft.icons.HANDYMAN)
+        elif role in ["duck", "rubberduck"]:
+            icondata = ft.Icon(name=ft.icons.CONTENT_PASTE_GO_OUTLINED)
             
         return icondata
 
@@ -53,12 +55,14 @@ class SingleChatMessageView(ft.UserControl):
         role_text = self.role
         self.gui_icon = self._decide_icon(self.role)
 
+        line_count = self.message.count("\n") + 1
         self.gui_text = ft.TextField(
             label=f"{role_text} - {time_text}",
             value=self.message,
             read_only=True,
             multiline=True,
-            max_lines=10,
+            min_lines=line_count,
+            max_lines=line_count,
             expand=True,
             text_size=11)
 
