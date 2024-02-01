@@ -62,7 +62,7 @@ class SingleChatMessageView(ft.UserControl):
             read_only=True,
             multiline=True,
             min_lines=line_count,
-            max_lines=line_count,
+            max_lines=None,
             expand=True,
             text_size=11)
 
