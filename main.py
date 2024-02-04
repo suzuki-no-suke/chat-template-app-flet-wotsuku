@@ -18,8 +18,10 @@ import src.data.chat_template as data_template
 
 import src.chat.i_chat as chatbot_basics
 import src.chat.rubber_duck as chatbot_duck
-import src.chat.openai_simple as chatbot_openai_simple
 import src.chat.squash_wall as chatbot_squash_wall
+import src.chat.openai_simple as chatbot_openai_simple
+import src.chat.openai_gpt4 as chatbot_openai_gpt4
+import src.chat.gemini_pro as chatbot_gemini_pro_free
 
 # -------------------------------------------------------------
 def main(page: ft.Page):
@@ -141,10 +143,12 @@ def main(page: ft.Page):
 
     def load_chatbot_list():
         bots = [
+            chatbot_squash_wall.SquashWall(),
             chatbot_basics.EchoBot(),
             chatbot_duck.RubberDuckBot(),
             chatbot_openai_simple.OpenAISimpleBot().config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")}),
-            chatbot_squash_wall.SquashWall(),
+            chatbot_openai_gpt4.OpenAIGPT4Bot().config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")}),
+            chatbot_gemini_pro_free.GeminiProFreeBot().config({"GOOGLE_API_KEY" : os.getenv("GOOGLE_GEMINI_API_KEY")})
         ]
 
         nonlocal loaded_bots_dict
