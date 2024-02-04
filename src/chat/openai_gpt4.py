@@ -3,7 +3,7 @@ from src.data.chat_history import ChatSingleMessage
 
 from openai import OpenAI
 
-class OpenAISimpleBot(IChatSendAndResponse):
+class OpenAIGPT4Bot(IChatSendAndResponse):
     def config(self, config_dict):
         """
         required datas
@@ -32,7 +32,7 @@ class OpenAISimpleBot(IChatSendAndResponse):
 
         # call chat api
         completion = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4-turbo-preview",
             messages=message_list
         )
 
@@ -42,10 +42,11 @@ class OpenAISimpleBot(IChatSendAndResponse):
         msg = completion.choices[0].message
         # TODO : error handling
 
+
         # build response
         response = ChatSingleMessage()
         response.set_chat(msg.role, msg.content)
         return response
 
     def system_name(self):
-        return "openai-simple-v0.0.1"
+        return "openai-gpt4-v0.0.1"
