@@ -2,6 +2,7 @@ import src.orm.base as orm_base
 
 # need for recognize by SQL Alchemy
 import src.orm.scheme.chat_history as orm_chat
+import src.orm.scheme.chat_api_log as orm_api_log
 
 from dotenv import load_dotenv
 
@@ -15,7 +16,7 @@ def init_app():
 
     engine = db.get_engine()
     orm_base.Base.metadata.create_all(engine)
-
+    # orm_base.Base.metadata.reflect(extend_existing=True)
 
 
 
