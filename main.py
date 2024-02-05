@@ -6,6 +6,7 @@ import pickle
 from datetime import datetime
 import re
 import jinja2
+import traceback
 
 import src.orm.base as orm_base
 import src.orm.table.chat_history as orm_chat
@@ -32,6 +33,8 @@ def main(page: ft.Page):
     current_bot = chatbot_squash_wall.SquashWall()
 
     current_chat_history = data_history.ChatHistory()
+
+    db_obj = orm_base.SQLFactory.default_env()
     
     # ---------------------------------------------------------
     # intermediate
@@ -69,6 +72,7 @@ def main(page: ft.Page):
         db = orm_base.SQLFactory.default_env()
         loader = orm_chat.ChatHistoryTable(db)
         all_chat_data = loader.get_history_all()
+        # print(f"alldata -> {all_chat_data}")
         drp_chat_history_selection.options = [
             ft.dropdown.Option(key=data[0], text=data[1]) for data in all_chat_data]
         page.update()
@@ -146,8 +150,8 @@ def main(page: ft.Page):
             chatbot_squash_wall.SquashWall(),
             chatbot_basics.EchoBot(),
             chatbot_duck.RubberDuckBot(),
-            chatbot_openai_simple.OpenAISimpleBot().config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")}),
-            chatbot_openai_gpt4.OpenAIGPT4Bot().config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY")}),
+            chatbot_openai_simple.OpenAISimpleBot().config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY"), "db": db_obj}),
+            chatbot_openai_gpt4.OpenAIGPT4Bot().config({"OPENAI_API_KEY" : os.getenv("OPENAI_API_KEY"), "db" : db_obj}),
             chatbot_gemini_pro_free.GeminiProFreeBot().config({"GOOGLE_API_KEY" : os.getenv("GOOGLE_GEMINI_API_KEY")})
         ]
 
@@ -198,6 +202,8 @@ def main(page: ft.Page):
         if not msg:
             return
         
+        ui_chat_message.value = ""
+
         last_send = ui_chat_history.add_chat("user", msg)
 
         # build chat_environ
@@ -209,11 +215,12 @@ def main(page: ft.Page):
         # wait for response
         print(f"current bot -> {current_bot.system_name()} + {chat_environ}")
 
-        bot_response = current_bot.send(chat_environ)
-        if bot_response:
-            ui_chat_history.add_chat(bot_response.role, bot_response.message)
-
-        ui_chat_message.value = ""
+        try:
+            bot_response = current_bot.send(chat_environ)
+            if bot_response:
+                ui_chat_history.add_chat(bot_response.role, bot_response.message)
+        except Exception as e:
+            ui_chat_history.add_chat("error", f"general exception caught : {str(e)} - {traceback.format_exc()}")
 
         # save chat log
         save_current_chatlog()
