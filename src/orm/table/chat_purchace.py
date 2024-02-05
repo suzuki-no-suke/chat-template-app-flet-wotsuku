@@ -7,7 +7,7 @@ from ulid import ULID
 from datetime import datetime
 import pickle
 
-class ChatApiLogTable:
+class ChatPurchaseTable:
     def __init__(self, db : orm_base.Base) -> None:
         self.db = db
 
