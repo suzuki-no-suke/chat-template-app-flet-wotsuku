@@ -84,7 +84,7 @@ class ChatHistoryTable:
         with self.db.session_scope() as sess:
             all_chat_data = sess \
                 .query(orm_chat.RecodeChatHistory.history_id, orm_chat.RecodeChatHistory.chat_titleline) \
-                .order_by(desc(orm_chat.RecodeChatHistory.updated_at)) \
+                .order_by(desc(orm_chat.RecodeChatHistory.history_id)) \
                 .all()
             for data in all_chat_data:
                 data_list.append(
@@ -113,7 +113,12 @@ class ChatHistoryTable:
         """
         data_list = []
         with self.db.session_scope() as sess:
-            all_chat_data = sess.query(orm_chat.RecodeChatHistory.history_id, orm_chat.RecodeChatHistory.chat_titleline).slice(start_index, end_index).all()
+            all_chat_data = sess.query(
+                    orm_chat.RecodeChatHistory.history_id,
+                    orm_chat.RecodeChatHistory.chat_titleline) \
+                .slice(start_index, end_index) \
+                .order_by(desc(orm_chat.RecodeChatHistory.history_id)) \
+                .all()
             for data in all_chat_data:
                 data_list.append(
                     (
