@@ -1,4 +1,4 @@
-import src.orm.scheme.chat_purchace as orm_chatpurchase
+import src.orm.scheme.chat_purchase as orm_chatpurchase
 import src.orm.base as orm_base
 
 from sqlalchemy import desc
@@ -13,7 +13,7 @@ class ChatPurchaseTable:
 
     def save_api_log_recode(self, recode : orm_chatpurchase.RecodeChatPurchase) -> str:
         ulid = str(ULID())
-        recode.log_id = ulid
+        recode.purchase_id = ulid
         with self.db.session_scope() as sess:
             sess.add(recode)
             sess.commit()
