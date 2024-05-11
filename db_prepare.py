@@ -3,7 +3,7 @@ import src.orm.base as orm_base
 # need for recognize by SQL Alchemy
 import src.orm.scheme.chat_history as orm_chat
 import src.orm.scheme.chat_api_log as orm_api_log
-import src.orm.scheme.chat_purchace as orm_purchase
+import src.orm.scheme.chat_purchase as orm_purchase
 
 from dotenv import load_dotenv
 
